@@ -3,6 +3,9 @@ import "./style.css";
 const app = document.querySelector("#app")!;
 
 const lineBreak = document.createElement("br");
+const initial = 0;
+const next = 1;
+const prev = -1;
 
 const gameName = "Sticker Power";
 
@@ -34,6 +37,7 @@ let y = 0;
 
 let points: [number, number][] = [];
 const displayPoints: [number, number][][] = [];
+let redoPoints: [number, number][][] = [];
 
 const drawingChange = new Event("drawing-changed");
 
@@ -42,6 +46,8 @@ canvas.addEventListener("mousedown", (event) => {
   y = event.offsetY;
   isDrawing = true;
   points = [];
+  redoPoints = [];
+  displayPoints.push(points);
   points.push([x, y]);
   canvas.dispatchEvent(drawingChange);
 });
@@ -60,6 +66,7 @@ canvas.addEventListener("mouseup", (event) => {
     isDrawing = false;
     points.push([event.offsetX, event.offsetY]);
     canvas.dispatchEvent(drawingChange);
+    points = [];
   }
 });
 
@@ -91,14 +98,34 @@ clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", clearCanvas);
 app.append(clearButton);
 
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "Redo";
+redoButton.addEventListener("click", () => {
+  if (redoPoints.length) {
+    const lastLine = redoPoints.pop();
+    displayPoints.push(lastLine!);
+    if (lastLine) {
+      canvas.dispatchEvent(drawingChange);
+    }
+  }
+});
+app.append(redoButton);
+
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "Undo";
+undoButton.addEventListener("click", () => {
+  if (displayPoints.length) {
+    const lastLine = displayPoints.pop();
+    redoPoints.push(lastLine!);
+    if (lastLine) {
+      canvas.dispatchEvent(drawingChange);
+    }
+  }
+});
+app.append(undoButton);
+
 canvas.addEventListener("drawing-changed", () => {
   clearCanvas();
-
-  displayPoints.push(points);
-
-  const initial = 0;
-  const next = 1;
-  const prev = -1;
 
   for (const line of displayPoints) {
     for (let i = 0; i < line.length + prev; i++) {
