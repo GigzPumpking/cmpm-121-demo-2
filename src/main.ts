@@ -18,7 +18,7 @@ const RECT_X = 0;
 const RECT_Y = 0;
 const RECT_WIDTH = 256;
 const RECT_HEIGHT = 256;
-ctx.fillStyle = "beige";        
+ctx.fillStyle = "beige";
 ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 app.append(ctx.canvas);
 
@@ -29,41 +29,45 @@ let x = 0;
 let y = 0;
 
 canvas.addEventListener("mousedown", (event) => {
-    x = event.offsetX;
-    y = event.offsetY;
-    isDrawing = true;
+  x = event.offsetX;
+  y = event.offsetY;
+  isDrawing = true;
 });
 
 canvas.addEventListener("mousemove", (event) => {
-    if (isDrawing) {
-        drawLine(ctx, x, y, event.offsetX, event.offsetY);
-        x = event.offsetX;
-        y = event.offsetY;
-    }
+  if (isDrawing) {
+    drawLine(ctx, x, y, event.offsetX, event.offsetY);
+    x = event.offsetX;
+    y = event.offsetY;
+  }
 });
 
 canvas.addEventListener("mouseup", (event) => {
-    if (isDrawing) {
-        drawLine(ctx, x, y, event.offsetX, event.offsetY);
-        x = 0;
-        y = 0;
-        isDrawing = false;
-    }
+  if (isDrawing) {
+    drawLine(ctx, x, y, event.offsetX, event.offsetY);
+    isDrawing = false;
+  }
 });
 
-function drawLine(context : CanvasRenderingContext2D, x1 : number, y1 : number, x2 : number, y2 : number) {
-    context.beginPath();
-    context.strokeStyle = "black";
-    context.lineWidth = 1;
-    context.moveTo(x1, y1);
-    context.lineTo(x2, y2);
-    context.stroke();
-    context.closePath();
+function drawLine(
+  context: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+) {
+  context.beginPath();
+  context.strokeStyle = "black";
+  context.lineWidth = 1;
+  context.moveTo(x1, y1);
+  context.lineTo(x2, y2);
+  context.stroke();
+  context.closePath();
 }
 
 function clearCanvas() {
-    ctx.clearRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT); 
-    ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
+  ctx.clearRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
+  ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 }
 
 const clearButton = document.createElement("button");
