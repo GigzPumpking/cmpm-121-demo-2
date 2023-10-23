@@ -2,6 +2,8 @@ import "./style.css";
 
 const app = document.querySelector("#app")!;
 
+const lineBreak = document.createElement("br");
+
 const gameName = "Sticker Power";
 
 document.title = gameName;
@@ -28,24 +30,36 @@ let isDrawing = false;
 let x = 0;
 let y = 0;
 
+// Declare an array of array of xy coordinates to store the beginning x and y coordinates and end of each line
+
+let points: [number, number][] = [];
+const displayPoints: [number, number][][] = [];
+
+const drawingChange = new Event("drawing-changed");
+
 canvas.addEventListener("mousedown", (event) => {
   x = event.offsetX;
   y = event.offsetY;
   isDrawing = true;
+  points = [];
+  points.push([x, y]);
+  canvas.dispatchEvent(drawingChange);
 });
 
 canvas.addEventListener("mousemove", (event) => {
   if (isDrawing) {
-    drawLine(ctx, x, y, event.offsetX, event.offsetY);
     x = event.offsetX;
     y = event.offsetY;
+    points.push([x, y]);
+    canvas.dispatchEvent(drawingChange);
   }
 });
 
 canvas.addEventListener("mouseup", (event) => {
   if (isDrawing) {
-    drawLine(ctx, x, y, event.offsetX, event.offsetY);
     isDrawing = false;
+    points.push([event.offsetX, event.offsetY]);
+    canvas.dispatchEvent(drawingChange);
   }
 });
 
@@ -70,7 +84,31 @@ function clearCanvas() {
   ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 }
 
+app.append(lineBreak);
+
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", clearCanvas);
 app.append(clearButton);
+
+canvas.addEventListener("drawing-changed", () => {
+  clearCanvas();
+
+  displayPoints.push(points);
+
+  const initial = 0;
+  const next = 1;
+  const prev = -1;
+
+  for (const line of displayPoints) {
+    for (let i = 0; i < line.length + prev; i++) {
+      drawLine(
+        ctx,
+        line[i][initial],
+        line[i][next],
+        line[i + next][initial],
+        line[i + next][next]
+      );
+    }
+  }
+});
