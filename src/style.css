@@ -83,3 +83,7 @@ button:focus-visible {
 #canvas{
   border:5px solid #000;
 }
+
+.selectedTool {
+  background-color: rgba(113, 109, 109, 0.578);
+}

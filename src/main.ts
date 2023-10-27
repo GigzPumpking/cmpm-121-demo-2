@@ -31,6 +31,7 @@ let x = 0;
 let y = 0;
 let newX = 0;
 let newY = 0;
+let lineWidth = 1;
 
 // Create a class to represent line segments
 class LineSegment {
@@ -38,13 +39,14 @@ class LineSegment {
     private x1: number,
     private y1: number,
     private x2: number,
-    private y2: number
+    private y2: number,
+    private lineWidth: number
   ) {}
 
   display(context: CanvasRenderingContext2D) {
     context.beginPath();
     context.strokeStyle = "black";
-    context.lineWidth = 1;
+    context.lineWidth = this.lineWidth;
     context.moveTo(this.x1, this.y1);
     context.lineTo(this.x2, this.y2);
     context.stroke();
@@ -65,7 +67,7 @@ canvas.addEventListener("mousedown", (event) => {
   singleSegments = [];
   redoSegments = [];
   displaySegments.push(singleSegments);
-  singleSegments.push(new LineSegment(x, y, x, y));
+  singleSegments.push(new LineSegment(x, y, x, y, lineWidth));
   canvas.dispatchEvent(drawingChange);
 });
 
@@ -74,7 +76,7 @@ canvas.addEventListener("mousemove", (event) => {
     newX = event.offsetX;
     newY = event.offsetY;
 
-    const currentSegment = new LineSegment(x, y, newX, newY);
+    const currentSegment = new LineSegment(x, y, newX, newY, lineWidth);
 
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     singleSegments.push(currentSegment);
@@ -92,7 +94,7 @@ canvas.addEventListener("mouseup", (event) => {
     newX = event.offsetX;
     newY = event.offsetY;
 
-    singleSegments.push(new LineSegment(x, y, newX, newY));
+    singleSegments.push(new LineSegment(x, y, newX, newY, lineWidth));
     canvas.dispatchEvent(drawingChange);
   }
 });
@@ -144,3 +146,21 @@ canvas.addEventListener("drawing-changed", () => {
     }
   }
 });
+
+const thinMarkerButton = document.createElement("button");
+thinMarkerButton.innerHTML = "Thin Marker";
+thinMarkerButton.addEventListener("click", () => {
+  lineWidth = 1;
+  thinMarkerButton.classList.add("selectedTool");
+  thickMarkerButton.classList.remove("selectedTool");
+});
+app.append(thinMarkerButton);
+
+const thickMarkerButton = document.createElement("button");
+thickMarkerButton.innerHTML = "Thick Marker";
+thickMarkerButton.addEventListener("click", () => {
+  lineWidth = 5;
+  thickMarkerButton.classList.add("selectedTool");
+  thinMarkerButton.classList.remove("selectedTool");
+});
+app.append(thickMarkerButton);
