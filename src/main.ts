@@ -32,6 +32,7 @@ let y = 0;
 let newX = 0;
 let newY = 0;
 let lineWidth = 1;
+let onCanvas = false;
 
 // Create a class to represent line segments
 class LineSegment {
@@ -53,6 +54,35 @@ class LineSegment {
     context.closePath();
   }
 }
+
+class Circle {
+  constructor(
+    public x: number,
+    public y: number,
+    private radius: number,
+    public lineWidth: number
+  ) {}
+
+  display(context: CanvasRenderingContext2D) {
+    context.beginPath();
+    context.strokeStyle = "black";
+    context.lineWidth = this.lineWidth;
+    context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    context.stroke();
+    context.closePath();
+  }
+}
+
+const toolMovedEvent = new Event("tool-moved");
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+const circle: Circle | null = new Circle(x, y, 10, lineWidth);
+
+canvas.addEventListener("tool-moved", () => {
+  circle.x = x;
+  circle.y = y;
+  circle.lineWidth = lineWidth;
+  canvas.dispatchEvent(drawingChange);
+});
 
 let singleSegments: LineSegment[] = [];
 const displaySegments: LineSegment[][] = [];
@@ -85,18 +115,33 @@ canvas.addEventListener("mousemove", (event) => {
     y = newY;
 
     canvas.dispatchEvent(drawingChange);
+  } else {
+    x = event.offsetX;
+    y = event.offsetY;
+    canvas.dispatchEvent(toolMovedEvent);
   }
 });
 
 canvas.addEventListener("mouseup", (event) => {
   if (isDrawing) {
-    isDrawing = false;
     newX = event.offsetX;
     newY = event.offsetY;
 
     singleSegments.push(new LineSegment(x, y, newX, newY, lineWidth));
     canvas.dispatchEvent(drawingChange);
+
+    isDrawing = false;
   }
+});
+
+canvas.addEventListener("mouseenter", () => {
+  onCanvas = true;
+});
+
+canvas.addEventListener("mouseleave", () => {
+  onCanvas = false;
+  clearCanvas();
+  canvas.dispatchEvent(drawingChange);
 });
 
 function clearCanvas() {
@@ -140,6 +185,10 @@ app.append(undoButton);
 canvas.addEventListener("drawing-changed", () => {
   clearCanvas();
 
+  if (!isDrawing && onCanvas) {
+    circle.display(ctx);
+  }
+
   for (const segment of displaySegments) {
     for (const line of segment) {
       line.display(ctx);
@@ -150,6 +199,7 @@ canvas.addEventListener("drawing-changed", () => {
 const thinMarkerButton = document.createElement("button");
 thinMarkerButton.innerHTML = "Thin Marker";
 thinMarkerButton.addEventListener("click", () => {
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   lineWidth = 1;
   thinMarkerButton.classList.add("selectedTool");
   thickMarkerButton.classList.remove("selectedTool");
@@ -159,6 +209,7 @@ app.append(thinMarkerButton);
 const thickMarkerButton = document.createElement("button");
 thickMarkerButton.innerHTML = "Thick Marker";
 thickMarkerButton.addEventListener("click", () => {
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   lineWidth = 5;
   thickMarkerButton.classList.add("selectedTool");
   thinMarkerButton.classList.remove("selectedTool");
