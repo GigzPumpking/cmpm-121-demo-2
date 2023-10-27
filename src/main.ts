@@ -67,20 +67,54 @@ class Circle {
     context.beginPath();
     context.strokeStyle = "black";
     context.lineWidth = this.lineWidth;
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     context.stroke();
     context.closePath();
   }
 }
 
+class Emoji {
+  constructor(public x: number, public y: number, public emoji: string) {}
+
+  display(context: CanvasRenderingContext2D) {
+    context.font = "48px serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(this.emoji, this.x, this.y);
+  }
+}
+
 const toolMovedEvent = new Event("tool-moved");
+let tool = "marker";
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-const circle: Circle | null = new Circle(x, y, 10, lineWidth);
+const circle: Circle | null = new Circle(x, y, 5, lineWidth);
+const emoji: Emoji | null = new Emoji(x, y, "\u2B50");
 
 canvas.addEventListener("tool-moved", () => {
-  circle.x = x;
-  circle.y = y;
-  circle.lineWidth = lineWidth;
+  switch (tool) {
+    case "marker":
+      circle.x = x;
+      circle.y = y;
+      circle.lineWidth = lineWidth;
+      emoji.emoji = "";
+      break;
+    case "star":
+      emoji.x = x;
+      emoji.y = y;
+      emoji.emoji = "\u2B50";
+      break;
+    case "heart":
+      emoji.x = x;
+      emoji.y = y;
+      emoji.emoji = "\uD83D\uDC96";
+      break;
+    case "asteroid":
+      emoji.x = x;
+      emoji.y = y;
+      emoji.emoji = "\uD83D\uDE80";
+      break;
+  }
   canvas.dispatchEvent(drawingChange);
 });
 
@@ -88,16 +122,34 @@ let singleSegments: LineSegment[] = [];
 const displaySegments: LineSegment[][] = [];
 let redoSegments: LineSegment[][] = [];
 
+const displayEmoji: Emoji[] = [];
+let redoEmoji: Emoji[] = [];
+
 const drawingChange = new Event("drawing-changed");
 
 canvas.addEventListener("mousedown", (event) => {
   x = event.offsetX;
   y = event.offsetY;
-  isDrawing = true;
-  singleSegments = [];
-  redoSegments = [];
-  displaySegments.push(singleSegments);
-  singleSegments.push(new LineSegment(x, y, x, y, lineWidth));
+  switch (tool) {
+    case "marker":
+      redoSegments = [];
+      isDrawing = true;
+      singleSegments = [];
+      displaySegments.push(singleSegments);
+      singleSegments.push(new LineSegment(x, y, x, y, lineWidth));
+      break;
+    case "star":
+      redoEmoji = [];
+      displayEmoji.push(new Emoji(x, y, "\u2B50"));
+      break;
+    case "heart":
+      redoEmoji = [];
+      displayEmoji.push(new Emoji(x, y, "\uD83D\uDC96"));
+      break;
+    case "asteroid":
+      redoEmoji = [];
+      displayEmoji.push(new Emoji(x, y, "\uD83D\uDE80"));
+  }
   canvas.dispatchEvent(drawingChange);
 });
 
@@ -182,11 +234,41 @@ undoButton.addEventListener("click", () => {
 });
 app.append(undoButton);
 
+const redoEmojiButton = document.createElement("button");
+redoEmojiButton.innerHTML = "Redo E";
+redoEmojiButton.addEventListener("click", () => {
+  if (redoEmoji.length) {
+    const lastEmoji = redoEmoji.pop();
+    displayEmoji.push(lastEmoji!);
+    if (lastEmoji) {
+      canvas.dispatchEvent(drawingChange);
+    }
+  }
+});
+app.append(redoEmojiButton);
+
+const undoEmojiButton = document.createElement("button");
+undoEmojiButton.innerHTML = "Undo E";
+undoEmojiButton.addEventListener("click", () => {
+  if (displayEmoji.length) {
+    const lastEmoji = displayEmoji.pop();
+    redoEmoji.push(lastEmoji!);
+    if (lastEmoji) {
+      canvas.dispatchEvent(drawingChange);
+    }
+  }
+});
+app.append(undoEmojiButton);
+
 canvas.addEventListener("drawing-changed", () => {
   clearCanvas();
 
   if (!isDrawing && onCanvas) {
-    circle.display(ctx);
+    if (tool === "marker") {
+      circle.display(ctx);
+    } else if (tool === "star" || tool === "heart" || tool === "asteroid") {
+      emoji.display(ctx);
+    }
   }
 
   for (const segment of displaySegments) {
@@ -194,24 +276,68 @@ canvas.addEventListener("drawing-changed", () => {
       line.display(ctx);
     }
   }
+
+  for (const emoji of displayEmoji) {
+    emoji.display(ctx);
+  }
 });
+
+// create an array of buttons for different tools
+const toolButtons: HTMLButtonElement[] = [];
 
 const thinMarkerButton = document.createElement("button");
 thinMarkerButton.innerHTML = "Thin Marker";
 thinMarkerButton.addEventListener("click", () => {
+  tool = "marker";
   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   lineWidth = 1;
-  thinMarkerButton.classList.add("selectedTool");
-  thickMarkerButton.classList.remove("selectedTool");
+  selectedTool(thinMarkerButton);
 });
+toolButtons.push(thinMarkerButton);
 app.append(thinMarkerButton);
 
 const thickMarkerButton = document.createElement("button");
 thickMarkerButton.innerHTML = "Thick Marker";
 thickMarkerButton.addEventListener("click", () => {
+  tool = "marker";
   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   lineWidth = 5;
-  thickMarkerButton.classList.add("selectedTool");
-  thinMarkerButton.classList.remove("selectedTool");
+  selectedTool(thickMarkerButton);
 });
+thinMarkerButton.classList.add("selectedTool");
+toolButtons.push(thickMarkerButton);
 app.append(thickMarkerButton);
+
+const starEmojiButton = document.createElement("button");
+starEmojiButton.innerHTML = "Star Emoji \u2B50";
+starEmojiButton.addEventListener("click", () => {
+  selectedTool(starEmojiButton);
+  tool = "star";
+});
+toolButtons.push(starEmojiButton);
+app.append(starEmojiButton);
+
+const heartEmojiButton = document.createElement("button");
+heartEmojiButton.innerHTML = "Heart Emoji \uD83D\uDC96";
+heartEmojiButton.addEventListener("click", () => {
+  selectedTool(heartEmojiButton);
+  tool = "heart";
+});
+toolButtons.push(heartEmojiButton);
+app.append(heartEmojiButton);
+
+const asteroidEmojiButton = document.createElement("button");
+asteroidEmojiButton.innerHTML = "Asteroid Emoji \uD83D\uDE80";
+asteroidEmojiButton.addEventListener("click", () => {
+  selectedTool(asteroidEmojiButton);
+  tool = "asteroid";
+});
+toolButtons.push(asteroidEmojiButton);
+app.append(asteroidEmojiButton);
+
+function selectedTool(selected: HTMLButtonElement) {
+  for (const button of toolButtons) {
+    button.classList.remove("selectedTool");
+  }
+  selected.classList.add("selectedTool");
+}
