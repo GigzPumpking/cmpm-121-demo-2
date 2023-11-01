@@ -1,8 +1,7 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import "./style.css";
 
 const app = document.querySelector("#app")!;
-
-const lineBreak = document.createElement("br");
 
 const gameName = "Sticker Power";
 
@@ -27,6 +26,10 @@ ctx.fillStyle = "beige";
 ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 app.append(ctx.canvas);
 
+function lineBreak() {
+  app.append(document.createElement("br"));
+}
+
 // implement drawing with mouse
 
 let isDrawing = false;
@@ -36,6 +39,7 @@ let newX = 0;
 let newY = 0;
 let lineWidth = 1;
 let onCanvas = false;
+let selectedColor: string;
 
 // Create a class to represent line segments
 class LineSegment {
@@ -44,12 +48,13 @@ class LineSegment {
     private y1: number,
     private x2: number,
     private y2: number,
-    private lineWidth: number
+    private lineWidth: number,
+    private color: string
   ) {}
 
   display(context: CanvasRenderingContext2D) {
     context.beginPath();
-    context.strokeStyle = "black";
+    context.strokeStyle = this.color;
     context.lineWidth = this.lineWidth;
     context.moveTo(this.x1, this.y1);
     context.lineTo(this.x2, this.y2);
@@ -68,9 +73,8 @@ class Circle {
 
   display(context: CanvasRenderingContext2D) {
     context.beginPath();
-    context.strokeStyle = "black";
+    context.strokeStyle = selectedColor;
     context.lineWidth = this.lineWidth;
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     context.stroke();
     context.closePath();
@@ -78,24 +82,32 @@ class Circle {
 }
 
 class Emoji {
-  constructor(public x: number, public y: number, public code: string) {}
+  constructor(
+    public x: number,
+    public y: number,
+    public code: string,
+    public rotation: number
+  ) {}
 
   display(context: CanvasRenderingContext2D) {
+    context.save();
     context.font = "24px serif";
     context.textAlign = "center";
     context.textBaseline = "middle";
+    context.translate(this.x, this.y);
+    context.rotate((this.rotation * Math.PI) / 180);
     const originalFillStyle = context.fillStyle;
     context.fillStyle = "black";
-    context.fillText(this.code, this.x, this.y);
+    context.fillText(this.code, 0, 0);
+    context.restore();
     context.fillStyle = originalFillStyle;
   }
 }
 
 const toolMovedEvent = new Event("tool-moved");
 let tool = "marker";
-// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 const circle: Circle = new Circle(x, y, 5, lineWidth);
-const emoji: Emoji = new Emoji(x, y, "");
+const emoji: Emoji = new Emoji(x, y, "", 0);
 
 canvas.addEventListener("tool-moved", () => {
   if (tool === "marker") {
@@ -105,6 +117,7 @@ canvas.addEventListener("tool-moved", () => {
   } else if (tool === "emoji") {
     emoji.x = x;
     emoji.y = y;
+    emoji.rotation = rotationSlider.valueAsNumber;
   }
   canvas.dispatchEvent(drawingChange);
 });
@@ -124,10 +137,12 @@ canvas.addEventListener("mousedown", (event) => {
     isDrawing = true;
     singleSegments = [];
     displaySegments.push(singleSegments);
-    singleSegments.push(new LineSegment(x, y, x, y, lineWidth));
+    singleSegments.push(new LineSegment(x, y, x, y, lineWidth, selectedColor));
   } else if (tool === "emoji") {
     redoSegments = [];
-    displaySegments.push(new Emoji(x, y, emoji.code));
+    displaySegments.push(
+      new Emoji(x, y, emoji.code, rotationSlider.valueAsNumber)
+    );
   }
 
   canvas.dispatchEvent(drawingChange);
@@ -138,9 +153,15 @@ canvas.addEventListener("mousemove", (event) => {
     newX = event.offsetX;
     newY = event.offsetY;
 
-    const currentSegment = new LineSegment(x, y, newX, newY, lineWidth);
+    const currentSegment = new LineSegment(
+      x,
+      y,
+      newX,
+      newY,
+      lineWidth,
+      selectedColor
+    );
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     singleSegments.push(currentSegment);
 
     x = newX;
@@ -159,7 +180,9 @@ canvas.addEventListener("mouseup", (event) => {
     newX = event.offsetX;
     newY = event.offsetY;
 
-    singleSegments.push(new LineSegment(x, y, newX, newY, lineWidth));
+    singleSegments.push(
+      new LineSegment(x, y, newX, newY, lineWidth, selectedColor)
+    );
     canvas.dispatchEvent(drawingChange);
 
     isDrawing = false;
@@ -181,7 +204,7 @@ function clearCanvas() {
   ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 }
 
-app.append(lineBreak);
+lineBreak();
 
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
@@ -252,7 +275,7 @@ toolButtons.push(markerButton);
 app.append(markerButton);
 
 const markerThicknessButton = document.createElement("button");
-markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}`;
+markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}px`;
 markerThicknessButton.addEventListener("click", () => {
   const newThickness = prompt("Enter a new thickness: ");
   if (newThickness) {
@@ -261,11 +284,57 @@ markerThicknessButton.addEventListener("click", () => {
       alert("Please enter a number");
     } else {
       lineWidth = thickness;
-      markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}`;
+      markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}px`;
     }
   }
 });
 app.append(markerThicknessButton);
+
+const colors: string[] = [
+  "black",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "blue",
+  "purple",
+];
+selectedColor = colors[0];
+
+// create a dropdown to hold the color buttons
+const colorDropdown = document.createElement("select");
+colorDropdown.innerHTML = `Color: ${colors[0]}`;
+for (const color of colors) {
+  const colorOption = document.createElement("option");
+  colorOption.value = color;
+  colorOption.innerHTML = color;
+  colorDropdown.append(colorOption);
+}
+colorDropdown.addEventListener("change", () => {
+  const selected = colorDropdown.value;
+  if (selected) {
+    selectedColor = selected;
+  }
+});
+app.append(colorDropdown);
+
+lineBreak();
+
+// place some text above the slider
+const rotationLabel = document.createElement("label");
+rotationLabel.innerHTML = `Emoji Rotation: 0°`;
+app.append(rotationLabel);
+lineBreak();
+
+const rotationSlider = document.createElement("input");
+rotationSlider.type = "range";
+rotationSlider.min = "0";
+rotationSlider.max = "360";
+rotationSlider.value = "0";
+rotationSlider.addEventListener("input", () => {
+  rotationLabel.innerHTML = `Emoji Rotation: ${rotationSlider.value}°`;
+});
+app.append(rotationSlider);
 
 // create a table to hold the emoji buttons
 const emojiTable = document.createElement("table");
@@ -317,7 +386,6 @@ exportButton.addEventListener("click", () => {
   tempCanvas.height = EXPORT_HEIGHT;
 
   const tempCtx = tempCanvas.getContext("2d")!;
-  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   tempCtx.scale(EXPORT_WIDTH / RECT_WIDTH, EXPORT_HEIGHT / RECT_HEIGHT);
   tempCtx.fillStyle = "beige";
   tempCtx.fillRect(RECT_X, RECT_Y, EXPORT_WIDTH, EXPORT_HEIGHT);
