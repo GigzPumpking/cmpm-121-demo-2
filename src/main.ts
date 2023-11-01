@@ -13,13 +13,16 @@ header.innerHTML = gameName;
 app.append(header);
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-canvas.width = 256;
-canvas.height = 256;
+const RECT_WIDTH = 256;
+const RECT_HEIGHT = 256;
+const EXPORT_WIDTH = 1024;
+const EXPORT_HEIGHT = 1024;
+
+canvas.width = RECT_WIDTH;
+canvas.height = RECT_HEIGHT;
 const ctx = canvas.getContext("2d")!;
 const RECT_X = 0;
 const RECT_Y = 0;
-const RECT_WIDTH = 256;
-const RECT_HEIGHT = 256;
 ctx.fillStyle = "beige";
 ctx.fillRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 app.append(ctx.canvas);
@@ -222,6 +225,10 @@ canvas.addEventListener("drawing-changed", () => {
     }
   }
 
+  displayDrawing(ctx);
+});
+
+function displayDrawing(ctx: CanvasRenderingContext2D) {
   for (const item of displaySegments) {
     if (Array.isArray(item)) {
       for (const line of item) {
@@ -231,7 +238,7 @@ canvas.addEventListener("drawing-changed", () => {
       item.display(ctx);
     }
   }
-});
+}
 
 // create an array of buttons for different tools
 const toolButtons: HTMLButtonElement[] = [];
@@ -300,6 +307,27 @@ customEmojiButton.addEventListener("click", () => {
   }
 });
 app.append(customEmojiButton);
+
+const exportButton = document.createElement("button");
+exportButton.innerHTML = "Export";
+exportButton.addEventListener("click", () => {
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = EXPORT_WIDTH;
+  tempCanvas.height = EXPORT_HEIGHT;
+
+  const tempCtx = tempCanvas.getContext("2d")!;
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+  tempCtx.scale(4, 4);
+  tempCtx.fillStyle = "beige";
+  tempCtx.fillRect(RECT_X, RECT_Y, EXPORT_WIDTH, EXPORT_HEIGHT);
+  displayDrawing(tempCtx);
+
+  const anchor = document.createElement("a");
+  anchor.href = tempCanvas.toDataURL("image/png");
+  anchor.download = "sketchpad.png";
+  anchor.click();
+});
+app.append(exportButton);
 
 function selectedTool(selected: HTMLButtonElement) {
   for (const button of toolButtons) {
