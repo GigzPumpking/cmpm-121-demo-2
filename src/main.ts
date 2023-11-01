@@ -13,8 +13,8 @@ header.innerHTML = gameName;
 app.append(header);
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const RECT_WIDTH = 256;
-const RECT_HEIGHT = 256;
+const RECT_WIDTH = 384;
+const RECT_HEIGHT = 384;
 const EXPORT_WIDTH = 1024;
 const EXPORT_HEIGHT = 1024;
 
@@ -240,31 +240,32 @@ function displayDrawing(ctx: CanvasRenderingContext2D) {
   }
 }
 
-// create an array of buttons for different tools
 const toolButtons: HTMLButtonElement[] = [];
 
-const thinMarkerButton = document.createElement("button");
-thinMarkerButton.innerHTML = "Thin Marker";
-thinMarkerButton.addEventListener("click", () => {
+const markerButton = document.createElement("button");
+markerButton.innerHTML = "Marker";
+markerButton.addEventListener("click", () => {
   tool = "marker";
-  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-  lineWidth = 1;
-  selectedTool(thinMarkerButton);
+  selectedTool(markerButton);
 });
-toolButtons.push(thinMarkerButton);
-app.append(thinMarkerButton);
+toolButtons.push(markerButton);
+app.append(markerButton);
 
-const thickMarkerButton = document.createElement("button");
-thickMarkerButton.innerHTML = "Thick Marker";
-thickMarkerButton.addEventListener("click", () => {
-  tool = "marker";
-  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-  lineWidth = 5;
-  selectedTool(thickMarkerButton);
+const markerThicknessButton = document.createElement("button");
+markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}`;
+markerThicknessButton.addEventListener("click", () => {
+  const newThickness = prompt("Enter a new thickness: ");
+  if (newThickness) {
+    const thickness = parseInt(newThickness);
+    if (isNaN(thickness)) {
+      alert("Please enter a number");
+    } else {
+      lineWidth = thickness;
+      markerThicknessButton.innerHTML = `Marker Thickness: ${lineWidth}`;
+    }
+  }
 });
-thinMarkerButton.classList.add("selectedTool");
-toolButtons.push(thickMarkerButton);
-app.append(thickMarkerButton);
+app.append(markerThicknessButton);
 
 // create a table to hold the emoji buttons
 const emojiTable = document.createElement("table");
@@ -317,7 +318,7 @@ exportButton.addEventListener("click", () => {
 
   const tempCtx = tempCanvas.getContext("2d")!;
   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-  tempCtx.scale(4, 4);
+  tempCtx.scale(EXPORT_WIDTH / RECT_WIDTH, EXPORT_HEIGHT / RECT_HEIGHT);
   tempCtx.fillStyle = "beige";
   tempCtx.fillRect(RECT_X, RECT_Y, EXPORT_WIDTH, EXPORT_HEIGHT);
   displayDrawing(tempCtx);

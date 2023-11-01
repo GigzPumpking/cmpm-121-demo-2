@@ -35,6 +35,7 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  font-family: "Haettenschweiler";
 }
 
 #app {
@@ -47,7 +48,8 @@ h1 {
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  padding: 10px;
+  margin: 7px;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -58,6 +60,7 @@ button {
 
 button:hover {
   border-color: #646cff;
+  border-radius: 8px;
 }
 
 button:focus,
@@ -74,17 +77,26 @@ button:focus-visible {
   a:hover {
     color: #747bff;
   }
-
-  button {
-    background-color: #f9f9f9;
-  }
 }
 
-#canvas{
-  border:5px solid #000;
-  position:relative;
+#canvas {
+  border: 5px solid #000;
+  position: relative;
 }
 
 .selectedTool {
   background-color: rgba(113, 109, 109, 0.578);
+}
+
+body {
+  background-color: #06483c;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  border-color: rgba(0, 7, 9, 0.578);
+  border-style: double;
+  border-spacing: 5px;
+  border-width: 5px;
 }
