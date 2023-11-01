@@ -82,6 +82,7 @@ button:focus-visible {
 
 #canvas{
   border:5px solid #000;
+  position:relative;
 }
 
 .selectedTool {
