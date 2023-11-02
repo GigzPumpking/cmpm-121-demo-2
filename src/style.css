@@ -30,12 +30,14 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #06483c;
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
   font-family: "Haettenschweiler";
+  color: #ffffff;
 }
 
 #app {
@@ -50,12 +52,14 @@ button {
   border: 1px solid transparent;
   padding: 10px;
   margin: 7px;
+  margin-bottom: 12px;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  color: #ffffff;
 }
 
 button:hover {
@@ -88,10 +92,6 @@ button:focus-visible {
   background-color: rgba(113, 109, 109, 0.578);
 }
 
-body {
-  background-color: #06483c;
-}
-
 table {
   border-collapse: collapse;
   width: 100%;
@@ -99,6 +99,7 @@ table {
   border-style: double;
   border-spacing: 5px;
   border-width: 5px;
+  background-color: #ffffff;
 }
 
 input {
@@ -110,4 +111,15 @@ input {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+}
+
+label {
+  background-color: #ffffff;
+  padding: 5px;
+  margin-top: 10px;
+}
+
+input {
+  padding: 5px;
+  margin-top: 10px;
 }
